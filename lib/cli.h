@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-char *cli_shift_args(char ***argv, int *argc);
+#define CLI_USAGE_SPACE "       "
 
 #define CLI_OPT_BOOL 1
 #define CLI_OPT_CSTR 2
@@ -19,6 +19,8 @@ typedef struct {
     } as;
 } CLI_Option;
 
-void cli_parse(char ***argv, int *argc, CLI_Option *opts, int optc, char **program);
+char *cli_shift_args(char ***argv, int *argc);
+int cli_parse(char **argv, int argc, CLI_Option *opts, int optc, char **program);
+void cli_print_options(CLI_Option *opts, int optc);
 
 #endif // CLUTIS_CLI_H_
