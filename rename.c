@@ -2,19 +2,23 @@
 
 #include "cli.h"
 #include "cstr.h"
+#include "macros.h"
 
 int main(int argc, char **argv) 
 {
-    char *program = shift_args(&argv, &argc);
-    char *last_slash = cstr_find_last(program, '/');
-    if (last_slash) program = last_slash + 1;
-    printf("%s\n", program);
+    char *program;
+    CLI_Option opts[] = {
+        {
+            .kind = CLI_OPT_BOOL,
+            .short_cmd = 'v',
+            .long_cmd = "verbose",
+            .desc = "enable verbose logging",
+        },
+    };
 
-    char *arg;
-    do {
-        arg = shift_args(&argv, &argc);
-        if (arg) printf("arg: %s\n", arg);
-    } while(arg);
+    cli_parse(&argv, &argc, opts, ARRAY_LENGTH(opts), &program);
+    printf("%s\n", program);
+    printf("verbose = %s\n", opts[0].as.boolean ? "true" : "false");
 
     return 0;
 }
