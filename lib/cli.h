@@ -24,5 +24,6 @@ typedef struct {
 char *cli_shift_args(char ***argv, int *argc);
 int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char **args, int args_cap, int *args_len, char **program);
 void cli_print_options(CLI_Option *opts, int optc);
+char *cli_error_to_cstr(int err);
 
 #endif // CLUTIS_CLI_H_

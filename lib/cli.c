@@ -49,35 +49,34 @@ int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char
                                     match = true;
                                 }
                                 break;
-                            default:
-                                break;
                         }
                     }
                     if (match) break;
                 }
                 if (!match) return argi;
             } else {
+                bool match = false;
                 while (input && *input) {
-                    bool match = false;
+                    match = false;
                     for (int i = 0; i < optc; i++) {
                         if (opts[i].short_cmd && *input == opts[i].short_cmd) {
                             switch (opts[i].kind) {
                                 case CLI_OPT_BOOL:
                                     opts[i].as.boolean = true;
                                     ++input;
+                                    match = true;
                                     break;
                                 case CLI_OPT_CSTR:
                                     opts[i].as.cstr = input + 1;
                                     input = NULL;
-                                    break;
-                                default:
+                                    match = true;
                                     break;
                             }
                         }
                         if (match) break;
                     }
-                    if (!match) return argi;
                 }
+                if (!match) return argi;
             }
         } else {
             if ((*args_len) < args_cap) {
@@ -103,4 +102,12 @@ void cli_print_options(CLI_Option *opts, int optc)
             printf("%s--%s\n", CLI_USAGE_SPACE, opts[i].long_cmd);
         printf("%s%s%s\n\n", CLI_USAGE_SPACE, CLI_USAGE_SPACE, opts[i].desc);
     }
+}
+
+char *cli_error_to_cstr(int err)
+{
+    switch (err) {
+        case CLI_ERR_TOO_MANY_ARGS: return "too many arguments";
+    }
+    return "unknown error";
 }
