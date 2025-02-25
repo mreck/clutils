@@ -8,6 +8,8 @@
 #define CLI_OPT_BOOL 1
 #define CLI_OPT_CSTR 2
 
+#define CLI_ERR_TOO_MANY_ARGS -1
+
 typedef struct {
     int kind;
     char short_cmd;
@@ -20,7 +22,7 @@ typedef struct {
 } CLI_Option;
 
 char *cli_shift_args(char ***argv, int *argc);
-int cli_parse(char **argv, int argc, CLI_Option *opts, int optc, char **program);
+int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char **args, int args_cap, int *args_len, char **program);
 void cli_print_options(CLI_Option *opts, int optc);
 
 #endif // CLUTIS_CLI_H_

@@ -10,10 +10,12 @@
 #define OPT_DIR 3
 #define OPT__LEN 4
 
-int main(int argc, char **argv) 
+int main(int raw_arg_cnt, char **raw_args) 
 {
     char *program;
     CLI_Option opts[OPT__LEN];
+    char *args[512];
+    int args_len;
     
     opts[OPT_VERBOSE] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
@@ -40,7 +42,7 @@ int main(int argc, char **argv)
         .desc = "print the help message",
     };
 
-    int bad = cli_parse(argv, argc, opts, ARRAY_LENGTH(opts), &program);
+    int bad = cli_parse(raw_args, raw_arg_cnt, opts, ARRAY_LENGTH(opts), args, ARRAY_LENGTH(args), &args_len, &program);
     printf("%s\n", program);
     printf("verbose = %s\n", opts[OPT_VERBOSE].as.boolean ? "true" : "false");
     printf("dir = %s\n", opts[OPT_DIR].as.cstr);
@@ -49,6 +51,10 @@ int main(int argc, char **argv)
     if (opts[OPT_HELP].as.boolean) {
         printf("\n\n");
         cli_print_options(opts, ARRAY_LENGTH(opts));
+    }
+
+    for (int i = 0; i < args_len; i++) {
+        printf("arg: %s\n", args[i]);
     }
 
     return 0;

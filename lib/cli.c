@@ -16,17 +16,18 @@ char *cli_shift_args(char ***argv, int *argc)
     return result;
 }
 
-int cli_parse(char **argv, int argc, CLI_Option *opts, int optc, char **program)
+int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char **args, int args_cap, int *args_len, char **program)
 {
-    char *prog = argv[0];
+    char *prog = raw_args[0];
     if (program) {
         char *last_slash = cstr_find_last(prog, '/');
         if (last_slash) prog = last_slash + 1;
         *program = prog;
     }
 
-    for (int argi = 1; argi < argc; argi++) {
-        char *input = argv[argi];
+    *args_len = 0;
+    for (int argi = 1; argi < raw_arg_cnt; argi++) {
+        char *input = raw_args[argi];
         if (*input == '-') {
             ++input;
             if (*input == '-') {
@@ -79,7 +80,11 @@ int cli_parse(char **argv, int argc, CLI_Option *opts, int optc, char **program)
                 }
             }
         } else {
-            // @TODO: implement non-opt handling
+            if ((*args_len) < args_cap) {
+                args[(*args_len)++] = input;
+            } else {
+                return CLI_ERR_TOO_MANY_ARGS;
+            }
         }
     }
 
