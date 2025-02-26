@@ -18,7 +18,7 @@ char *cstr_find_next_char(char *cstr, char c)
 
 char *cstr_find_next_str(char *cstr, int cstr_len, char *pat, int pat_len)
 {
-    int iter_len = cstr_len - pat_len;
+    int iter_len = cstr_len - pat_len + 1;
     for (int i = 0; i < iter_len; i++) {
         bool match = true;
         for (int j = 0; j < pat_len; j++) {

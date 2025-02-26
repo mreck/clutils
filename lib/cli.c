@@ -4,6 +4,7 @@
 
 #include "cli.h"
 #include "cstr.h"
+#include "macros.h"
 
 char *cli_shift_args(char ***argv, int *argc)
 {
@@ -115,4 +116,12 @@ char *cli_error_to_cstr(int err)
         case CLI_ERR_TOO_MANY_ARGS: return "too many arguments";
     }
     return "unknown error";
+}
+
+bool cli_prompt_confirm(char *question)
+{
+    char buff[32];
+    printf("%s [y/n]: ", question);
+    fgets(buff, ARRAY_LENGTH(buff), stdin);
+    return *buff == 'Y' || *buff == 'y';
 }

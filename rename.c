@@ -1,5 +1,8 @@
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <unistd.h>
 
 #include "cli.h"
 #include "cstr.h"
@@ -11,7 +14,8 @@
 #define OPT_INTERACTIVE 3
 #define OPT_DRY_RUN     4
 #define OPT_SUBSTITUTE  5
-#define OPT__LEN        6
+#define OPT_FORCE       6
+#define OPT__LEN        7
 
 CLI_Option opts[OPT__LEN];
 
@@ -47,24 +51,42 @@ void init_opts(void)
         .long_cmd = "dry-run",
         .desc = "don't rename any files, but print the results",
     };
-    opts[OPT_SUBSTITUTE] = (CLI_Option){
+    opts[OPT_SUBSTITUTE] = (CLI_Option){ // @TODO: allow multiple
         .kind = CLI_OPT_CSTR,
         .short_cmd = 's',
         .long_cmd = "sub",
         .desc = "substitute part of the filename",
     };
+    opts[OPT_FORCE] = (CLI_Option){
+        .kind = CLI_OPT_BOOL,
+        .short_cmd = 'f',
+        .long_cmd = "force",
+        .desc = "don't ask before overriding files",
+    };
 }
 
-void cmd_rename(char *old_path, char *new_path)
+int cmd_rename(char *old_path, char *new_path)
 {
+    char tmp_buf[1024];
+    int err = 0;
     if (opts[OPT_DRY_RUN].as.boolean) {
         printf("[dry-run] %s -> %s\n", old_path, new_path);
     } else {
-        rename(old_path, new_path); // @TODO: check we don't overwrite anything, also check errors
-        if (opts[OPT_VERBOSE].as.boolean) {
-            printf("%s -> %s\n", old_path, new_path);
+        bool override = opts[OPT_FORCE].as.boolean || access(new_path, F_OK) != 0;
+        if (!override) {
+            snprintf(tmp_buf, ARRAY_LENGTH(tmp_buf),  "override '%s'?", new_path);
+            override = cli_prompt_confirm(tmp_buf);
+        }
+        if (override) {
+            if (rename(old_path, new_path) != 0) {
+                err = errno;
+            }
+            if (err == 0 && opts[OPT_VERBOSE].as.boolean) {
+                printf("%s -> %s\n", old_path, new_path);
+            }
         }
     }
+    return err;
 }
 
 int main(int raw_arg_cnt, char **raw_args)
@@ -93,7 +115,11 @@ int main(int raw_arg_cnt, char **raw_args)
                fprintf(stderr, "ERROR: invalid input\n");
                return 1;
             }
-            cmd_rename(args[i], in_buf);
+            rval = cmd_rename(args[i], in_buf);
+            if (rval != 0) {
+                fprintf(stderr, "ERROR: %s\n", strerror(rval));
+                return 1;
+            }
         }
     } else if (opts[OPT_SUBSTITUTE].as.cstr != NULL) {
         char *p = opts[OPT_SUBSTITUTE].as.cstr;
@@ -118,7 +144,11 @@ int main(int raw_arg_cnt, char **raw_args)
                                        mid + 1, sub_len,
                                        sub_buf, ARRAY_LENGTH(sub_buf));
             if (cnt > 0) {
-                cmd_rename( args[i], sub_buf);
+                rval = cmd_rename(args[i], sub_buf);
+                if (rval != 0) {
+                    fprintf(stderr, "ERROR: %s\n", strerror(rval));
+                    return 1;
+                }
             }
         }
     }
