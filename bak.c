@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "cli.h"
 #include "cstr.h"
@@ -11,7 +12,8 @@
 #define OPT_VERSION     1
 #define OPT_VERBOSE     2
 #define OPT_DRY_RUN     3
-#define OPT__LEN        4
+#define OPT_TIMESTAMP   4
+#define OPT__LEN        5
 
 CLI_Option opts[OPT__LEN];
 
@@ -45,6 +47,13 @@ void init_opts(void)
         .env_cmd = NULL,
         .desc = "don't backup any files, but print the results",
     };
+    opts[OPT_TIMESTAMP] = (CLI_Option){
+        .kind = CLI_OPT_BOOL,
+        .short_cmd = 't',
+        .long_cmd = "timestamp",
+        .env_cmd = NULL,
+        .desc = "use unix timestamps in the backup filename",
+    };
 }
 
 int cmd_backup(char *filename)
@@ -55,16 +64,24 @@ int cmd_backup(char *filename)
     char bak_fn[2048];
     int ret = snprintf(bak_fn, ARRAY_LENGTH(bak_fn), "%s.bak", filename);
     if (ret >= (int)ARRAY_LENGTH(bak_fn)) DEFER_WITH(CLU_ERR_BUFFER_TOO_SMALL);
-    if (cli_file_exists(bak_fn)) {
-        char *end = (char*)(bak_fn) + ret;
-        int cap = (int)ARRAY_LENGTH(bak_fn) - ret;
-        int i = 0;
-        do {
-            ++i;
-            ret = snprintf(end, cap, "%d", i);
-            if (ret >= cap) DEFER_WITH(CLU_ERR_BUFFER_TOO_SMALL);
-        } while (cli_file_exists(bak_fn));
+    char *bak_fn_end = (char*)(bak_fn) + ret;
+    int bak_fn_cap = (int)ARRAY_LENGTH(bak_fn) - ret;
+
+    if (opts[OPT_TIMESTAMP].as.boolean) {
+        unsigned long ts = time(NULL);
+        ret = snprintf(bak_fn_end, bak_fn_cap, "_%lu", ts);
+        if (ret >= bak_fn_cap) DEFER_WITH(CLU_ERR_BUFFER_TOO_SMALL);
+    } else {
+        if (cli_file_exists(bak_fn)) {
+            int i = 0;
+            do {
+                ++i;
+                ret = snprintf(bak_fn_end, bak_fn_cap, "%d", i);
+                if (ret >= bak_fn_cap) DEFER_WITH(CLU_ERR_BUFFER_TOO_SMALL);
+            } while (cli_file_exists(bak_fn));
+        }
     }
+
     if (opts[OPT_DRY_RUN].as.boolean) {
         printf("[dry-run] \"%s\" -> \"%s\"\n", filename, bak_fn);
     } else {
@@ -84,6 +101,7 @@ int cmd_backup(char *filename)
             printf("\"%s\" -> \"%s\"\n", filename, bak_fn);
         }
     }
+
 DEFER:
     if (src) fclose(src);
     if (dst) fclose(dst);
