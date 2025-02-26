@@ -28,6 +28,19 @@ int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char
 
     for (int i = 0; i < optc; i++) {
         memset(&opts[i].as, 0, sizeof(opts[i].as));
+        if (opts[i].env_cmd) {
+            char *val = getenv(opts[i].env_cmd);
+            if (val) {
+                switch (opts[i].kind) {
+                    case CLI_OPT_BOOL:
+                        opts[i].as.boolean = true;
+                        break;
+                    case CLI_OPT_CSTR:
+                        opts[i].as.cstr = val;
+                        break;
+                }
+            }
+        }
     }
 
     *args_len = 0;

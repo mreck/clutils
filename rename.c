@@ -25,42 +25,49 @@ void init_opts(void)
         .kind = CLI_OPT_BOOL,
         .short_cmd = '\0',
         .long_cmd = "version",
+        .env_cmd = NULL,
         .desc = "print the program version",
     };
     opts[OPT_VERBOSE] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
         .short_cmd = 'v',
         .long_cmd = "verbose",
+        .env_cmd = NULL,
         .desc = "enable verbose logging",
     };
     opts[OPT_HELP] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
         .short_cmd = 'h',
         .long_cmd = "help",
+        .env_cmd = NULL,
         .desc = "print the help message",
     };
     opts[OPT_INTERACTIVE] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
         .short_cmd = 'i',
         .long_cmd = "interactive",
+        .env_cmd = NULL,
         .desc = "rename files interactively, one by one",
     };
     opts[OPT_DRY_RUN] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
         .short_cmd = 'd',
         .long_cmd = "dry-run",
+        .env_cmd = NULL,
         .desc = "don't rename any files, but print the results",
     };
     opts[OPT_SUBSTITUTE] = (CLI_Option){ // @TODO: allow multiple
         .kind = CLI_OPT_CSTR,
         .short_cmd = 's',
         .long_cmd = "sub",
+        .env_cmd = NULL,
         .desc = "substitute part of the filename",
     };
     opts[OPT_FORCE] = (CLI_Option){
         .kind = CLI_OPT_BOOL,
         .short_cmd = 'f',
         .long_cmd = "force",
+        .env_cmd = "RENAME_ALWAYS_FORCE",
         .desc = "don't ask before overriding files",
     };
 }
@@ -70,11 +77,11 @@ int cmd_rename(char *old_path, char *new_path)
     char tmp_buf[1024];
     int err = 0;
     if (opts[OPT_DRY_RUN].as.boolean) {
-        printf("[dry-run] %s -> %s\n", old_path, new_path);
+        printf("[dry-run] \"%s\" -> \"%s\"\n", old_path, new_path);
     } else {
         bool override = opts[OPT_FORCE].as.boolean || access(new_path, F_OK) != 0;
         if (!override) {
-            snprintf(tmp_buf, ARRAY_LENGTH(tmp_buf),  "override '%s'?", new_path);
+            snprintf(tmp_buf, ARRAY_LENGTH(tmp_buf),  "override \"%s\"?", new_path);
             override = cli_prompt_confirm(tmp_buf);
         }
         if (override) {
@@ -82,7 +89,7 @@ int cmd_rename(char *old_path, char *new_path)
                 err = errno;
             }
             if (err == 0 && opts[OPT_VERBOSE].as.boolean) {
-                printf("%s -> %s\n", old_path, new_path);
+                printf("\"%s\" -> \"%s\"\n", old_path, new_path);
             }
         }
     }
@@ -106,10 +113,12 @@ int main(int raw_arg_cnt, char **raw_args)
         return 1;
     }
 
-    if (opts[OPT_INTERACTIVE].as.boolean) {
+    if (opts[OPT_VERSION].as.boolean) {
+        printf("%s version: 0.1.0\n", program); // @TODO: figure out a better option, like branch tags or something
+    } else if (opts[OPT_INTERACTIVE].as.boolean) {
         char in_buf[1024];
         for (int i = 0; i < args_len; i++) {
-            printf("rename: %s\nto: ", args[i]);
+            printf("rename: \"%s\"\nto: ", args[i]);
             char *res = fgets(in_buf, ARRAY_LENGTH(in_buf), stdin);
             if (res != (char*)in_buf) {
                fprintf(stderr, "ERROR: invalid input\n");

@@ -14,6 +14,7 @@ typedef struct {
     int kind;
     char short_cmd;
     char *long_cmd;
+    char *env_cmd;
     char *desc;
     union {
         bool boolean;
