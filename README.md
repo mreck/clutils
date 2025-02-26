@@ -12,4 +12,5 @@ make install
 
 ## Utilities
 
+- **bak** - a utility for backing up files
 - **rename** - a utility for renaming files
