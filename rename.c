@@ -148,16 +148,19 @@ int main(int raw_arg_cnt, char **raw_args)
         int sub_len = end - mid - 1;
         for (int i = 0; i < args_len; i++) {
             char sub_buf[1024];
-            int cnt = cstr_replace_all(args[i], (int)strlen(args[i]),
-                                       fst + 1, pat_len,
-                                       mid + 1, sub_len,
-                                       sub_buf, ARRAY_LENGTH(sub_buf));
-            if (cnt > 0) {
+            rval = cstr_replace_all(args[i], (int)strlen(args[i]),
+                                    fst + 1, pat_len,
+                                    mid + 1, sub_len,
+                                    sub_buf, ARRAY_LENGTH(sub_buf));
+            if (rval > 0) {
                 rval = cmd_rename(args[i], sub_buf);
                 if (rval != 0) {
                     fprintf(stderr, "ERROR: %s\n", strerror(rval));
                     return 1;
                 }
+            } else if (rval < 0) {
+                fprintf(stderr, "ERROR: %s\n", cli_error_to_cstr(rval));
+                return 1;
             }
         }
     }

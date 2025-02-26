@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "cstr.h"
+#include "macros.h"
 
 char *cstr_find_next_char(char *cstr, char c)
 {
@@ -55,7 +56,7 @@ int cstr_replace_all(char *cstr, int cstr_len, char *pat, int pat_len, char *sub
     char *pat_found = cstr_find_next_str(cstr, cstr_len, pat, pat_len);
     if (pat_found) {
         int required = strlen(cstr) - pat_len + sub_len;
-        if (required < buff_cap) { // @TODO: handle error case
+        if (required < buff_cap) {
             int buff_offset = 0;
             memcpy(buff + buff_offset, cstr, pat_found - cstr);
             buff_offset += (pat_found - cstr);
@@ -63,7 +64,9 @@ int cstr_replace_all(char *cstr, int cstr_len, char *pat, int pat_len, char *sub
             buff_offset += sub_len;
             strcpy(buff + buff_offset, pat_found + pat_len);
             ++cnt;
+        } else {
+            return CLU_ERR_BUFFER_TOO_SMALL;
         }
-    } // @TODO: handle else case
+    }
     return cnt;
 }

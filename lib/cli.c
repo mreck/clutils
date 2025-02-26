@@ -100,7 +100,7 @@ int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char
             if ((*args_len) < args_cap) {
                 args[(*args_len)++] = input;
             } else {
-                return CLI_ERR_TOO_MANY_ARGS;
+                return CLU_ERR_TOO_MANY_ARGS;
             }
         }
     }
@@ -126,7 +126,8 @@ void cli_print_options(CLI_Option *opts, int optc)
 char *cli_error_to_cstr(int err)
 {
     switch (err) {
-        case CLI_ERR_TOO_MANY_ARGS: return "too many arguments";
+        case CLU_ERR_TOO_MANY_ARGS:    return "too many arguments";
+        case CLU_ERR_BUFFER_TOO_SMALL: return "buffer too small";
     }
     return "unknown error";
 }

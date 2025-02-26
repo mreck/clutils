@@ -3,12 +3,12 @@
 
 #include <stdbool.h>
 
+#ifndef CLI_USAGE_SPACE
 #define CLI_USAGE_SPACE "       "
+#endif
 
 #define CLI_OPT_BOOL 1
 #define CLI_OPT_CSTR 2
-
-#define CLI_ERR_TOO_MANY_ARGS -1
 
 typedef struct {
     int kind;
