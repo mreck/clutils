@@ -1,9 +1,8 @@
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#include <unistd.h>
 
 #include "cli.h"
 #include "cstr.h"
@@ -88,7 +87,7 @@ int cmd_rename(char *old_path, char *new_path)
     if (opts[OPT_DRY_RUN].as.boolean) {
         printf("[dry-run] \"%s\" -> \"%s\"\n", old_path, new_path);
     } else {
-        bool override = opts[OPT_FORCE].as.boolean || access(new_path, F_OK) != 0;
+        bool override = opts[OPT_FORCE].as.boolean || !cli_file_exists(new_path);
         if (!override) {
             snprintf(tmp_buf, ARRAY_LENGTH(tmp_buf),  "override \"%s\"?", new_path);
             override = cli_prompt_confirm(tmp_buf);
@@ -137,7 +136,7 @@ int main(int raw_arg_cnt, char **raw_args)
                return 1;
             }
             rval = cmd_rename(args[i], in_buf);
-            if (rval != 0) {
+            if (rval > 0) {
                 fprintf(stderr, "ERROR: %s\n", strerror(rval));
                 return 1;
             }
@@ -176,6 +175,10 @@ int main(int raw_arg_cnt, char **raw_args)
             }
         }
     } else if (opts[OPT_BULK_EDIT].as.boolean) {
+        if (getenv("EDITOR") == NULL) {
+            fprintf(stderr, "ERROR: $EDITOR is not defined\n");
+            return 1;
+        }
         char temp_fn[256];
         snprintf(temp_fn, ARRAY_LENGTH(temp_fn), "%s/rename_%lu.txt", CLU_TEMP_DIR, (unsigned long)time(NULL)); // @TODO: handle buffer too small
         FILE *fp = fopen(temp_fn, "w+");
@@ -193,7 +196,7 @@ int main(int raw_arg_cnt, char **raw_args)
         fclose(fp);
         rval = cli_open_editor(temp_fn);
         if (rval != 0) {
-            fprintf(stderr, "ERROR: $EDITOR return an error: %d\n", rval);
+            fprintf(stderr, "ERROR: $EDITOR returned an error: %d\n", rval);
             return rval;
         }
         fp = fopen(temp_fn, "r+");

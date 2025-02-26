@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>
+
 #include "cli.h"
 #include "cstr.h"
 #include "macros.h"
@@ -145,4 +147,9 @@ int cli_open_editor(char *filename)
     char buff[1024];
     snprintf(buff, ARRAY_LENGTH(buff), "$EDITOR \"%s\"", filename);
     return system(buff);
+}
+
+bool cli_file_exists(char *filename)
+{
+    return access(filename, F_OK) == 0;
 }
