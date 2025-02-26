@@ -20,9 +20,13 @@ int cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, char
 {
     char *prog = raw_args[0];
     if (program) {
-        char *last_slash = cstr_find_last(prog, '/');
+        char *last_slash = cstr_find_last_char(prog, '/');
         if (last_slash) prog = last_slash + 1;
         *program = prog;
+    }
+
+    for (int i = 0; i < optc; i++) {
+        memset(&opts[i].as, 0, sizeof(opts[i].as));
     }
 
     *args_len = 0;
@@ -98,7 +102,7 @@ void cli_print_options(CLI_Option *opts, int optc)
             printf("%s-%c, --%s\n", CLI_USAGE_SPACE, opts[i].short_cmd, opts[i].long_cmd);
         else if (opts[i].short_cmd)
             printf("%s-%c\n", CLI_USAGE_SPACE, opts[i].short_cmd);
-        else 
+        else
             printf("%s--%s\n", CLI_USAGE_SPACE, opts[i].long_cmd);
         printf("%s%s%s\n\n", CLI_USAGE_SPACE, CLI_USAGE_SPACE, opts[i].desc);
     }

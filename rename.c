@@ -1,15 +1,17 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "cli.h"
 #include "cstr.h"
 #include "macros.h"
 
-#define OPT_HELP 0
-#define OPT_VERSION 1
-#define OPT_VERBOSE 2
+#define OPT_HELP        0
+#define OPT_VERSION     1
+#define OPT_VERBOSE     2
 #define OPT_INTERACTIVE 3
-#define OPT_DRY_RUN 4
-#define OPT__LEN 5
+#define OPT_DRY_RUN     4
+#define OPT_SUBSTITUTE  5
+#define OPT__LEN        6
 
 CLI_Option opts[OPT__LEN];
 
@@ -45,9 +47,15 @@ void init_opts(void)
         .long_cmd = "dry-run",
         .desc = "don't rename any files, but print the results",
     };
+    opts[OPT_SUBSTITUTE] = (CLI_Option){
+        .kind = CLI_OPT_CSTR,
+        .short_cmd = 's',
+        .long_cmd = "sub",
+        .desc = "substitute part of the filename",
+    };
 }
 
-int main(int raw_arg_cnt, char **raw_args) 
+int main(int raw_arg_cnt, char **raw_args)
 {
     init_opts();
 
@@ -75,6 +83,34 @@ int main(int raw_arg_cnt, char **raw_args)
             }
             if (opts[OPT_DRY_RUN].as.boolean) {
                 printf("%s -> %s\n", args[i], in_buf);
+            }
+        }
+    } else if (opts[OPT_SUBSTITUTE].as.cstr != NULL) {
+        char *p = opts[OPT_SUBSTITUTE].as.cstr;
+        char sep = *p;
+        char *fst = p;
+        char *mid = cstr_find_next_char(fst+1, sep);
+        if (!mid) {
+            fprintf(stderr, "ERROR: invalid substitute: %s\n", opts[OPT_SUBSTITUTE].as.cstr);
+            return 1;
+        }
+        char *end = cstr_find_next_char(mid+1, sep);
+        if (!end || end[1] != '\0') {
+            fprintf(stderr, "ERROR: invalid substitute: %s\n", opts[OPT_SUBSTITUTE].as.cstr);
+            return 1;
+        }
+        int pat_len = mid - fst - 1;
+        int sub_len = end - mid - 1;
+        for (int i = 0; i < args_len; i++) {
+            char sub_buf[1024];
+            int cnt = cstr_replace_all(args[i], (int)strlen(args[i]),
+                                       fst + 1, pat_len,
+                                       mid + 1, sub_len,
+                                       sub_buf, ARRAY_LENGTH(sub_buf));
+            if (cnt > 0) {
+                if (opts[OPT_DRY_RUN].as.boolean) {
+                    printf("%s -> %s\n", args[i], sub_buf);
+                }
             }
         }
     }
