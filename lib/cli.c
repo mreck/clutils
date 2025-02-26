@@ -139,3 +139,10 @@ bool cli_prompt_confirm(char *question)
     fgets(buff, ARRAY_LENGTH(buff), stdin);
     return *buff == 'Y' || *buff == 'y';
 }
+
+int cli_open_editor(char *filename)
+{
+    char buff[1024];
+    snprintf(buff, ARRAY_LENGTH(buff), "$EDITOR \"%s\"", filename);
+    return system(buff);
+}

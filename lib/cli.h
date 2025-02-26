@@ -27,5 +27,6 @@ int   cli_parse(char **raw_args, int raw_arg_cnt, CLI_Option *opts, int optc, ch
 void  cli_print_options(CLI_Option *opts, int optc);
 char *cli_error_to_cstr(int err);
 bool  cli_prompt_confirm(char *question);
+int   cli_open_editor(char *filename);
 
 #endif // CLUTIS_CLI_H_

@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <unistd.h>
 
@@ -15,7 +16,8 @@
 #define OPT_DRY_RUN     4
 #define OPT_SUBSTITUTE  5
 #define OPT_FORCE       6
-#define OPT__LEN        7
+#define OPT_BULK_EDIT   7
+#define OPT__LEN        8
 
 CLI_Option opts[OPT__LEN];
 
@@ -69,6 +71,13 @@ void init_opts(void)
         .long_cmd = "force",
         .env_cmd = "RENAME_ALWAYS_FORCE",
         .desc = "don't ask before overriding files",
+    };
+    opts[OPT_BULK_EDIT] = (CLI_Option){
+        .kind = CLI_OPT_BOOL,
+        .short_cmd = 'b',
+        .long_cmd = "bulk",
+        .env_cmd = NULL,
+        .desc = "bulk edit filenames using $EDITOR",
     };
 }
 
@@ -163,6 +172,53 @@ int main(int raw_arg_cnt, char **raw_args)
                 return 1;
             }
         }
+    } else if (opts[OPT_BULK_EDIT].as.boolean) {
+        char temp_fn[256];
+        snprintf(temp_fn, ARRAY_LENGTH(temp_fn), "%s/rename_%lu.txt", CLU_TEMP_DIR, (unsigned long)time(NULL)); // @TODO: handle buffer too small
+        FILE *fp = fopen(temp_fn, "w+");
+        if (!fp) {
+            fprintf(stderr, "ERROR: creating temp file \"%s\" failed %s\n", temp_fn, strerror(rval));
+            return 1;
+        }
+        for (int i = 0; i < args_len; i++) {
+            if (fprintf(fp, "%s\n", args[i]) == 0) {
+                fprintf(stderr, "ERROR: writing temp file \"%s\" failed %s\n", temp_fn, strerror(rval));
+                fclose(fp);
+                return 1;
+            }
+        }
+        fclose(fp);
+        rval = cli_open_editor(temp_fn);
+        if (rval != 0) {
+            fprintf(stderr, "ERROR: $EDITOR return an error: %d\n", rval);
+            return rval;
+        }
+        fp = fopen(temp_fn, "r+");
+        if (!fp) {
+            fprintf(stderr, "ERROR: creating temp file \"%s\" failed %s\n", temp_fn, strerror(rval));
+            return 1;
+        }
+        char line_buff[2048];
+        for (int i = 0; i < args_len; i++) {
+            if (fgets(line_buff, ARRAY_LENGTH(line_buff), fp) == NULL) {
+                fprintf(stderr, "ERROR: reading temp file \"%s\" failed %s\n", temp_fn, strerror(rval));
+                fclose(fp);
+                return 1;
+            }
+            size_t line_len = strlen(line_buff);
+            if (line_buff[line_len-1] == '\n') {
+                line_buff[line_len-1] = '\0';
+            }
+            if (strcmp(args[i], line_buff) != 0) {
+                rval = cmd_rename(args[i], line_buff);
+                if (rval != 0) {
+                    fprintf(stderr, "ERROR: %s\n", strerror(rval));
+                    fclose(fp);
+                    return 1;
+                }
+            }
+        }
+        fclose(fp);
     }
 
     return 0;
