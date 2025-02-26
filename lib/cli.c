@@ -98,12 +98,13 @@ void cli_print_options(CLI_Option *opts, int optc)
 {
     printf("OPTIONS\n");
     for (int i = 0; i < optc; i++) {
-        if (opts[i].short_cmd && opts[i].long_cmd)
+        if (opts[i].short_cmd && opts[i].long_cmd) {
             printf("%s-%c, --%s\n", CLI_USAGE_SPACE, opts[i].short_cmd, opts[i].long_cmd);
-        else if (opts[i].short_cmd)
+        } else if (opts[i].short_cmd) {
             printf("%s-%c\n", CLI_USAGE_SPACE, opts[i].short_cmd);
-        else
+        } else {
             printf("%s--%s\n", CLI_USAGE_SPACE, opts[i].long_cmd);
+        }
         printf("%s%s%s\n\n", CLI_USAGE_SPACE, CLI_USAGE_SPACE, opts[i].desc);
     }
 }

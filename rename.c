@@ -55,6 +55,18 @@ void init_opts(void)
     };
 }
 
+void cmd_rename(char *old_path, char *new_path)
+{
+    if (opts[OPT_DRY_RUN].as.boolean) {
+        printf("[dry-run] %s -> %s\n", old_path, new_path);
+    } else {
+        rename(old_path, new_path);
+        if (opts[OPT_VERBOSE].as.boolean) {
+            printf("%s -> %s\n", old_path, new_path);
+        }
+    }
+}
+
 int main(int raw_arg_cnt, char **raw_args)
 {
     init_opts();
@@ -72,8 +84,8 @@ int main(int raw_arg_cnt, char **raw_args)
         return 1;
     }
 
-    char in_buf[1024];
     if (opts[OPT_INTERACTIVE].as.boolean) {
+        char in_buf[1024];
         for (int i = 0; i < args_len; i++) {
             printf("rename: %s\nto: ", args[i]);
             char *res = fgets(in_buf, ARRAY_LENGTH(in_buf), stdin);
@@ -81,9 +93,7 @@ int main(int raw_arg_cnt, char **raw_args)
                fprintf(stderr, "ERROR: invalid input\n");
                return 1;
             }
-            if (opts[OPT_DRY_RUN].as.boolean) {
-                printf("%s -> %s\n", args[i], in_buf);
-            }
+            cmd_rename(args[i], in_buf);
         }
     } else if (opts[OPT_SUBSTITUTE].as.cstr != NULL) {
         char *p = opts[OPT_SUBSTITUTE].as.cstr;
@@ -108,9 +118,7 @@ int main(int raw_arg_cnt, char **raw_args)
                                        mid + 1, sub_len,
                                        sub_buf, ARRAY_LENGTH(sub_buf));
             if (cnt > 0) {
-                if (opts[OPT_DRY_RUN].as.boolean) {
-                    printf("%s -> %s\n", args[i], sub_buf);
-                }
+                cmd_rename( args[i], sub_buf);
             }
         }
     }
