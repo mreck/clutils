@@ -60,7 +60,7 @@ void cmd_rename(char *old_path, char *new_path)
     if (opts[OPT_DRY_RUN].as.boolean) {
         printf("[dry-run] %s -> %s\n", old_path, new_path);
     } else {
-        rename(old_path, new_path);
+        rename(old_path, new_path); // @TODO: check we don't overwrite anything, also check errors
         if (opts[OPT_VERBOSE].as.boolean) {
             printf("%s -> %s\n", old_path, new_path);
         }
