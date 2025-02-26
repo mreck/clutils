@@ -124,6 +124,9 @@ int main(int raw_arg_cnt, char **raw_args)
 
     if (opts[OPT_VERSION].as.boolean) {
         printf("%s version: 0.1.0\n", program); // @TODO: figure out a better option, like branch tags or something
+    } else if (opts[OPT_HELP].as.boolean) {
+        printf("NAME\n%s%s - a utility for renaming files\n\n", CLI_USAGE_SPACE, program);
+        cli_print_options(opts, ARRAY_LENGTH(opts));
     } else if (opts[OPT_INTERACTIVE].as.boolean) {
         char in_buf[1024];
         for (int i = 0; i < args_len; i++) {
