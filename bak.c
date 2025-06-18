@@ -19,41 +19,12 @@ CLI_Option opts[OPT__LEN];
 
 void init_opts(void)
 {
-    opts[OPT_HELP] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'h',
-        .long_cmd = "help",
-        .env_cmd = NULL,
-        .desc = "print the help message",
-    };
-    opts[OPT_VERSION] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = '\0',
-        .long_cmd = "version",
-        .env_cmd = NULL,
-        .desc = "print the program version",
-    };
-    opts[OPT_VERBOSE] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'v',
-        .long_cmd = "verbose",
-        .env_cmd = NULL,
-        .desc = "enable verbose logging",
-    };
-    opts[OPT_DRY_RUN] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'd',
-        .long_cmd = "dry-run",
-        .env_cmd = NULL,
-        .desc = "don't backup any files, but print the results",
-    };
-    opts[OPT_TIMESTAMP] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 't',
-        .long_cmd = "timestamp",
-        .env_cmd = NULL,
-        .desc = "use unix timestamps in the backup filename",
-    };
+    //                                  kind           short_cmd  long_cmd      env_cmd  desc
+    opts[OPT_HELP]      = (CLI_Option){ CLI_OPT_BOOL,  'h',       "help",       NULL,    "print the help message",                         { NULL } };
+    opts[OPT_VERSION]   = (CLI_Option){ CLI_OPT_BOOL,  '\0',      "version",    NULL,    "print the program version",                      { NULL } };
+    opts[OPT_VERBOSE]   = (CLI_Option){ CLI_OPT_BOOL,  'v',       "verbose",    NULL,    "enable verbose logging",                         { NULL } };
+    opts[OPT_DRY_RUN]   = (CLI_Option){ CLI_OPT_BOOL,  'd',       "dry-run",    NULL,    "don't backup any files, but print the results",  { NULL } };
+    opts[OPT_TIMESTAMP] = (CLI_Option){ CLI_OPT_BOOL,  't',       "timestamp",  NULL,    "use unix timestamps in the backup filename",     { NULL } };
 }
 
 int cmd_backup(char *filename)

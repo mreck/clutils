@@ -22,62 +22,15 @@ CLI_Option opts[OPT__LEN];
 
 void init_opts(void)
 {
-    opts[OPT_VERSION] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = '\0',
-        .long_cmd = "version",
-        .env_cmd = NULL,
-        .desc = "print the program version",
-    };
-    opts[OPT_VERBOSE] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'v',
-        .long_cmd = "verbose",
-        .env_cmd = NULL,
-        .desc = "enable verbose logging",
-    };
-    opts[OPT_HELP] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'h',
-        .long_cmd = "help",
-        .env_cmd = NULL,
-        .desc = "print the help message",
-    };
-    opts[OPT_INTERACTIVE] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'i',
-        .long_cmd = "interactive",
-        .env_cmd = NULL,
-        .desc = "rename files interactively, one by one",
-    };
-    opts[OPT_DRY_RUN] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'd',
-        .long_cmd = "dry-run",
-        .env_cmd = NULL,
-        .desc = "don't rename any files, but print the results",
-    };
-    opts[OPT_SUBSTITUTE] = (CLI_Option){ // @TODO: allow multiple
-        .kind = CLI_OPT_CSTR,
-        .short_cmd = 's',
-        .long_cmd = "sub",
-        .env_cmd = NULL,
-        .desc = "substitute part of the filename",
-    };
-    opts[OPT_FORCE] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'f',
-        .long_cmd = "force",
-        .env_cmd = "RENAME_ALWAYS_FORCE",
-        .desc = "don't ask before overriding files",
-    };
-    opts[OPT_BULK_EDIT] = (CLI_Option){
-        .kind = CLI_OPT_BOOL,
-        .short_cmd = 'b',
-        .long_cmd = "bulk",
-        .env_cmd = NULL,
-        .desc = "bulk edit filenames using $EDITOR",
-    };
+    //                                    kind           short_cmd  long_cmd        env_cmd                 desc
+    opts[OPT_VERSION]     = (CLI_Option){ CLI_OPT_BOOL,  '\0',      "version",      NULL,                   "print the program version",                      { NULL } };
+    opts[OPT_VERBOSE]     = (CLI_Option){ CLI_OPT_BOOL,  'v',       "verbose",      NULL,                   "enable verbose logging",                         { NULL } };
+    opts[OPT_HELP]        = (CLI_Option){ CLI_OPT_BOOL,  'h',       "help",         NULL,                   "print the help message",                         { NULL } };
+    opts[OPT_INTERACTIVE] = (CLI_Option){ CLI_OPT_BOOL,  'i',       "interactive",  NULL,                   "rename files interactively, one by one",         { NULL } };
+    opts[OPT_DRY_RUN]     = (CLI_Option){ CLI_OPT_BOOL,  'd',       "dry-run",      NULL,                   "don't rename any files, but print the results",  { NULL } };
+    opts[OPT_SUBSTITUTE]  = (CLI_Option){ CLI_OPT_CSTR,  's',       "sub",          NULL,                   "substitute part of the filename",                { NULL } }; // @TODO: allow multiple
+    opts[OPT_FORCE]       = (CLI_Option){ CLI_OPT_BOOL,  'f',       "force",        "RENAME_ALWAYS_FORCE",  "don't ask before overriding files",              { NULL } };
+    opts[OPT_BULK_EDIT]   = (CLI_Option){ CLI_OPT_BOOL,  'b',       "bulk",         NULL,                   "bulk edit filenames using $EDITOR",              { NULL } };
 }
 
 int cmd_rename(char *old_path, char *new_path)
