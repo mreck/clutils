@@ -9,7 +9,7 @@ lib/%.o: %.c %.h
 bak: bak.c lib/cstr.o lib/cli.o
 	$(CC) $(CFLAGS) $^ -o $@
 
-rename: rename.c lib/cstr.o lib/cli.o
+rename: rename.c lib/cstr.o lib/cli.o lib/str.o lib/sbuf.o lib/err.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 

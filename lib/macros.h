@@ -5,6 +5,7 @@
 #define CLU_TEMP_DIR "/tmp"
 #endif
 
+// @TODO: move all errors to the generic ones in err.h
 #define CLU_ERR_TOO_MANY_ARGS    -1
 #define CLU_ERR_BUFFER_TOO_SMALL -2
 #define CLU_ERR_FILE_OP_FAILED   -3

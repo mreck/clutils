@@ -6,7 +6,10 @@
 
 #include "cli.h"
 #include "cstr.h"
+#include "err.h"
 #include "macros.h"
+#include "sbuf.h"
+#include "str.h"
 
 #define OPT_HELP        0
 #define OPT_VERSION     1
@@ -16,7 +19,8 @@
 #define OPT_SUBSTITUTE  5
 #define OPT_FORCE       6
 #define OPT_BULK_EDIT   7
-#define OPT__LEN        8
+#define OPT_PREFIX      8
+#define OPT__LEN        9
 
 CLI_Option opts[OPT__LEN];
 
@@ -31,6 +35,7 @@ void init_opts(void)
     opts[OPT_SUBSTITUTE]  = (CLI_Option){ CLI_OPT_CSTR,  's',       "sub",          NULL,                   "substitute part of the filename",                { NULL } }; // @TODO: allow multiple
     opts[OPT_FORCE]       = (CLI_Option){ CLI_OPT_BOOL,  'f',       "force",        "RENAME_ALWAYS_FORCE",  "don't ask before overriding files",              { NULL } };
     opts[OPT_BULK_EDIT]   = (CLI_Option){ CLI_OPT_BOOL,  'b',       "bulk",         NULL,                   "bulk edit filenames using $EDITOR",              { NULL } };
+    opts[OPT_PREFIX]      = (CLI_Option){ CLI_OPT_CSTR,  '\0',      "prefix",       NULL,                   "prefix the filenames",                           { NULL } };
 }
 
 int cmd_rename(char *old_path, char *new_path)
@@ -88,11 +93,7 @@ int main(int raw_arg_cnt, char **raw_args)
                fprintf(stderr, "ERROR: invalid input\n");
                return 1;
             }
-            rval = cmd_rename(args[i], in_buf);
-            if (rval > 0) {
-                fprintf(stderr, "ERROR: %s\n", strerror(rval));
-                return 1;
-            }
+            die_if(cmd_rename(args[i], in_buf));
         }
     } else if (opts[OPT_SUBSTITUTE].as.cstr != NULL) {
         char *p = opts[OPT_SUBSTITUTE].as.cstr;
@@ -117,15 +118,24 @@ int main(int raw_arg_cnt, char **raw_args)
                                     mid + 1, sub_len,
                                     sub_buf, ARRAY_LENGTH(sub_buf));
             if (rval > 0) {
-                rval = cmd_rename(args[i], sub_buf);
-                if (rval != 0) {
-                    fprintf(stderr, "ERROR: %s\n", strerror(rval));
-                    return 1;
-                }
+                die_if(cmd_rename(args[i], sub_buf));
             } else if (rval < 0) {
                 fprintf(stderr, "ERROR: %s\n", cli_error_to_cstr(rval));
                 return 1;
             }
+        }
+    } else if (opts[OPT_PREFIX].as.cstr != NULL) {
+        SBuf subst;
+        die_if(sbuf_init(&subst, 1024));
+        Str prefix = str_make(opts[OPT_PREFIX].as.cstr);
+        for (int i = 0; i < args_len; i++) {
+            Str arg = str_make(args[i]);
+            int last = str_find_last(arg, '/');
+            size_t pos = last < 0 ? 0 : last + 1;
+            sbuf_clear(&subst);
+            die_if(sbuf_append_str(&subst, arg));
+            die_if(sbuf_insert_str(&subst, prefix, (size_t)pos));
+            die_if(cmd_rename(arg.p, subst.p));
         }
     } else if (opts[OPT_BULK_EDIT].as.boolean) {
         if (getenv("EDITOR") == NULL) {
